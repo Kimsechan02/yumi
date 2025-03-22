@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/main_background"
+    tools:context=".NameSearchMainActivity">
+
+    <!-- 🔙 뒤로 가기 버튼 -->
+    <Button
+        android:id="@+id/PageBack"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="40dp"
+        android:background="@drawable/pageback_vector"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <!-- 🔹 소환사 프로필 이미지 -->
+    <ImageView
+        android:id="@+id/summonerIcon"
+        android:layout_width="110dp"
+        android:layout_height="110dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginStart="20dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/PageBack"/>
+
+    <!-- 🔹 소환사 닉네임 + 태그 -->
+    <TextView
+        android:id="@+id/summonerName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="닉네임#태그"
+        android:textSize="20sp"
+        android:textColor="@android:color/black"
+        android:layout_marginTop="30dp"
+        android:layout_marginStart="150dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/PageBack"/>
+
+    <!-- 🔹 전적 검색 버튼 (전적창 새로고침) -->
+    <Button
+        android:id="@+id/refreshMatchData"
+        android:layout_width="110dp"
+        android:layout_height="40dp"
+        android:text="전적 갱신"
+        android:textSize="14sp"
+        android:backgroundTint="@android:color/black"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="40dp"
+        android:layout_marginEnd="10dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/summonerName"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- 🔹 랭크 정보 -->
+    <TextView
+        android:id="@+id/summonerRank"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="랭크 정보 불러오는 중..."
+        android:textSize="18sp"
+        android:textColor="@android:color/black"
+        android:layout_marginTop="20dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/refreshMatchData"/>
+
+    <!-- 🔹 전적 리스트 (RecyclerView) -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/matchHistoryList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        app:layout_constraintTop_toBottomOf="@id/summonerRank"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <!-- 랭크 정보 카드 -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/rankCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        app:cardCornerRadius="15dp"
+        app:cardElevation="5dp"
+        app:layout_constraintTop_toBottomOf="@id/refreshMatchData"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:visibility="gone"> <!-- 기본적으로 안 보이게 설정 -->
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <!-- 개인/2인전 텍스트 -->
+            <TextView
+                android:id="@+id/rankType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="개인/2인전"
+                android:textSize="14sp"
+                android:textColor="@android:color/black"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"/>
+
+            <!-- 랭킹 텍스트 -->
+            <TextView
+                android:id="@+id/rankPosition"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="랭킹 -위"
+                android:textSize="14sp"
+                android:textColor="@android:color/holo_blue_dark"
+                app:layout_constraintStart_toEndOf="@id/rankType"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginStart="10dp"/>
+
+            <!-- 티어 이미지 -->
+            <ImageView
+                android:id="@+id/rankTierImage"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_marginTop="8dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/rankType"/>
+
+            <!-- 티어 텍스트 -->
+            <TextView
+                android:id="@+id/rankTier"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TIER"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/holo_green_dark"
+                app:layout_constraintStart_toEndOf="@id/rankTierImage"
+                app:layout_constraintTop_toTopOf="@id/rankTierImage"
+                android:layout_marginStart="16dp"/>
+
+            <!-- LP 포인트 -->
+            <TextView
+                android:id="@+id/rankLP"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0 LP"
+                android:textSize="16sp"
+                app:layout_constraintStart_toStartOf="@id/rankTier"
+                app:layout_constraintTop_toBottomOf="@id/rankTier"
+                android:layout_marginTop="4dp"/>
+
+            <!-- 승/패 정보 -->
+            <TextView
+                android:id="@+id/rankWinLoss"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0전 0승 0패"
+                android:textSize="16sp"
+                app:layout_constraintStart_toStartOf="@id/rankLP"
+                app:layout_constraintTop_toBottomOf="@id/rankLP"
+                android:layout_marginTop="4dp"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
