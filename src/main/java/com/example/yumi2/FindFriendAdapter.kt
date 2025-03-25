@@ -58,7 +58,7 @@ class FindFriendAdapter(
             storageRef.downloadUrl
                 .addOnSuccessListener { uri ->
                     Glide.with(holder.img.context)
-                        .load(uri.toString()) // 변환된 HTTP URL 로드
+                        .load(uri.toString())
                         .circleCrop()
                         .into(holder.img)
                 }
@@ -74,20 +74,19 @@ class FindFriendAdapter(
                 .into(holder.img)
         }
 
-        // 이미 요청한 경우 버튼 비활성화
+        // sentRequests의 상태에 따라 버튼 텍스트를 설정
+        if (sentRequests.contains(userId)) {
+            holder.btnSendRequest.text = "요청됨"
+        } else {
+            holder.btnSendRequest.text = "요청"
+        }
+        // 버튼은 항상 활성화 시켜두기
+        holder.btnSendRequest.isEnabled = true
+
+        // 버튼 클릭 시에는 단순히 요청 전송/취소 작업을 호출하고,
+        // 작업 성공 후 Activity에서 sentRequests를 업데이트하고 adapter.notifyDataSetChanged() 호출할 것.
         holder.btnSendRequest.setOnClickListener {
             listener.onSendRequest(userId)
-
-            if (sentRequests.contains(userId)) {
-                // 🔥 요청한 상태 → 요청 취소
-                holder.btnSendRequest.isEnabled = true
-                holder.btnSendRequest.text = "요청"
-            } else {
-                // 🔥 요청 안한 상태 → 요청 보내기
-                holder.btnSendRequest.isEnabled = false
-                holder.btnSendRequest.text = "요청됨"
-            }
         }
     }
-
 }

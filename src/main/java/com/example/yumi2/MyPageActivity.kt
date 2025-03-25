@@ -168,29 +168,66 @@ class MyPageActivity : AppCompatActivity(), ProfileEditDialog.ProfileUpdateListe
             .get()
             .addOnSuccessListener { documents ->
                 val friendsList = mutableListOf<HashMap<String, String>>()
-                for (document in documents) {
-                    val friendId = document.id
-                    val friendData = document.data.toMutableMap()
-                    friendData["id"] = friendId
-                    friendsList.add(friendData as HashMap<String, String>)
-                }
-
-                runOnUiThread {
-                    if (friendsList.isEmpty()) {
+                val db = FirebaseFirestore.getInstance()
+                val totalFriends = documents.size()
+                if (totalFriends == 0) {
+                    runOnUiThread {
                         emptyFriendsText.visibility = View.VISIBLE
                         friendsRecyclerView.visibility = View.GONE
-                    } else {
-                        emptyFriendsText.visibility = View.GONE
-                        friendsRecyclerView.visibility = View.VISIBLE
-                        val friendsAdapter = FriendsAdapter(friendsList, friendsList, R.layout.item_friend)
-                        friendsRecyclerView.adapter = friendsAdapter
                     }
+                    return@addOnSuccessListener
+                }
+                var fetchedCount = 0
+                for (document in documents) {
+                    val friendId = document.id
+                    val friendMap = hashMapOf<String, String>()
+                    friendMap["id"] = friendId
+
+                    // user_profiles에서 친구 정보 조회
+                    db.collection("user_profiles").document(friendId)
+                        .get()
+                        .addOnSuccessListener { profileDoc ->
+                            val nickname = profileDoc.getString("nickname") ?: "알 수 없음"
+                            val profileImageUrl = profileDoc.getString("profileImageUrl") ?: "default"
+                            friendMap["nickname"] = nickname
+                            friendMap["profileImageUrl"] = profileImageUrl
+                            friendsList.add(friendMap)
+                            fetchedCount++
+                            if (fetchedCount == totalFriends) {
+                                updateFriendsUI(friendsList)
+                            }
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("Firestore", "❌ 프로필 정보 가져오기 실패: $friendId", e)
+                            friendMap["nickname"] = "알 수 없음"
+                            friendMap["profileImageUrl"] = "default"
+                            friendsList.add(friendMap)
+                            fetchedCount++
+                            if (fetchedCount == totalFriends) {
+                                updateFriendsUI(friendsList)
+                            }
+                        }
                 }
             }
             .addOnFailureListener { e ->
                 Log.e("Firestore", "❌ 친구 목록 가져오기 실패", e)
             }
     }
+
+    private fun updateFriendsUI(friendsList: List<HashMap<String, String>>) {
+        runOnUiThread {
+            if (friendsList.isEmpty()) {
+                emptyFriendsText.visibility = View.VISIBLE
+                friendsRecyclerView.visibility = View.GONE
+            } else {
+                emptyFriendsText.visibility = View.GONE
+                friendsRecyclerView.visibility = View.VISIBLE
+                val friendsAdapter = FriendsAdapter(friendsList, friendsList, R.layout.item_friend)
+                friendsRecyclerView.adapter = friendsAdapter
+            }
+        }
+    }
+
 
     private fun loadFavoritesList(uid: String) {
         db.collection("users").document(uid).collection("favorites")

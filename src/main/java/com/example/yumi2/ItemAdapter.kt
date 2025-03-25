@@ -61,24 +61,35 @@ class ItemAdapter(
     override fun getFilter(): Filter {
         return object : Filter() {
             override fun performFiltering(constraint: CharSequence?): FilterResults {
-                val query = constraint?.toString()?.trim() ?: ""
-                val results = FilterResults()
-                results.values = if (query.isEmpty()) {
-                    originalItemList
-                } else {
-                    originalItemList.filter {
-                        it.name.contains(query, ignoreCase = true)
+                val query = constraint?.toString()?.lowercase()?.trim() ?: ""
+                val filtered = when {
+                    query.isEmpty() -> originalItemList
+                    query == "*" -> emptyList()
+                    else -> originalItemList.filter { item ->
+                        val name = item.name.lowercase()
+                        val rawDesc = item.description.lowercase()
+                        val description = if (rawDesc == "설명 없음") "" else rawDesc.replace("*", "")
+                        val effect = item.effect.lowercase()
+                        val stats = item.stats.lowercase()
+
+                        name.contains(query) ||
+                                description.contains(query) ||
+                                effect.contains(query) ||
+                                stats.contains(query)
                     }
                 }
-                return results
+                return FilterResults().apply { values = filtered }
             }
 
+
+            @Suppress("UNCHECKED_CAST")
             override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
                 filteredItemList = results?.values as List<Item>
                 notifyDataSetChanged()
             }
         }
     }
+
 
     fun getItemList(): List<Item> {
         return originalItemList

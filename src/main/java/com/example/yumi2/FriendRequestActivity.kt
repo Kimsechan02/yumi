@@ -38,31 +38,55 @@ class FriendRequestActivity : AppCompatActivity(), FriendRequestAdapter.ActionLi
             .get()
             .addOnSuccessListener { docs ->
                 requests.clear()
+                val totalRequests = docs.size()
+                if (totalRequests == 0) {
+                    // 요청이 하나도 없으면 바로 emptyRequestsText 보이기
+                    findViewById<TextView>(R.id.emptyRequestsText).visibility = View.VISIBLE
+                    return@addOnSuccessListener
+                }
+                var processedCount = 0
                 docs.forEach { d ->
                     val requesterId = d.id
-
-                    // 🔥 요청한 사용자의 닉네임과 프로필 이미지 가져오기
-                    db.collection("users").document(requesterId)
+                    db.collection("user_profiles").document(requesterId)
                         .get()
                         .addOnSuccessListener { userDoc ->
                             val nickname = userDoc.getString("nickname") ?: "알 수 없음"
                             val profileImageUrl = userDoc.getString("profileImageUrl") ?: "default"
-
                             val map = hashMapOf(
                                 "id" to requesterId,
                                 "nickname" to nickname,
                                 "profileImageUrl" to profileImageUrl
                             )
-
                             requests.add(map)
-                            adapter.notifyDataSetChanged()
+                            processedCount++
+                            // 모든 요청 처리 완료 후에 UI 갱신
+                            if (processedCount == totalRequests) {
+                                updateRequestsUI()
+                            }
+                        }
+                        .addOnFailureListener {
+                            processedCount++
+                            if (processedCount == totalRequests) {
+                                updateRequestsUI()
+                            }
                         }
                 }
-
-                findViewById<TextView>(R.id.emptyRequestsText).visibility =
-                    if (requests.isEmpty()) View.VISIBLE else View.GONE
+            }
+            .addOnFailureListener {
+                // 요청 가져오기 실패 시 처리
+                findViewById<TextView>(R.id.emptyRequestsText).visibility = View.VISIBLE
             }
     }
+
+    private fun updateRequestsUI() {
+        if (requests.isEmpty()) {
+            findViewById<TextView>(R.id.emptyRequestsText).visibility = View.VISIBLE
+        } else {
+            findViewById<TextView>(R.id.emptyRequestsText).visibility = View.GONE
+        }
+        adapter.notifyDataSetChanged()
+    }
+
 
 
     override fun onAccept(requesterId: String) {
@@ -95,8 +119,16 @@ class FriendRequestActivity : AppCompatActivity(), FriendRequestAdapter.ActionLi
     override fun onBlock(requesterId: String) {
         val uid = FirebaseAuth.getInstance().currentUser!!.uid
         val batch = db.batch()
-        batch.set(db.collection("users").document(uid).collection("blocked").document(requesterId), mapOf("id" to requesterId))
-        batch.delete(db.collection("friend_requests").document(uid).collection("requests").document(requesterId))
+
+        // 차단 목록 추가
+        batch.set(db.collection("users").document(uid)
+            .collection("blocked").document(requesterId), mapOf("id" to requesterId))
+
+        // 친구 요청 컬렉션에서 해당 요청 삭제
+        batch.delete(db.collection("users").document(uid)
+            .collection("friend_requests").document(requesterId))
+
         batch.commit().addOnSuccessListener { loadRequests() }
     }
+
 }

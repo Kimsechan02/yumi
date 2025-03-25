@@ -43,7 +43,8 @@ class ItemSelectionActivity : AppCompatActivity() {
         "물리 관통력" to R.drawable.lol_stat_armor_p,
         "마법 관통력" to R.drawable.lol_stat_magic_p,
         "강인함" to R.drawable.lol_stat_tenacity,
-        "초당 골드" to R.drawable.lol_stat_coin
+        "초당 골드" to R.drawable.lol_stat_coin,
+        "체력 회복 및 보호막" to R.drawable.lol_stat_has
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,6 +86,8 @@ class ItemSelectionActivity : AppCompatActivity() {
         // 저장/불러오기 버튼 설정
         setupSaveAndLoadButtons(uid)
     }
+
+
 
     private fun setupSearchAndFilters() {
         val searchView = findViewById<SearchView>(R.id.searchView)

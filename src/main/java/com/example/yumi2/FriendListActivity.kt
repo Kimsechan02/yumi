@@ -19,7 +19,6 @@ class FriendListActivity : AppCompatActivity() {
     private lateinit var friendsAdapter: FriendsAdapter
     private lateinit var emptyText: TextView
 
-    // <-- 제네릭을 Map<String,String> 으로 선언해야 Adapter와 호환됩니다.
     private val friendsList = mutableListOf<Map<String, String>>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,7 +32,6 @@ class FriendListActivity : AppCompatActivity() {
         friendsAdapter = FriendsAdapter(friendsList, friendsList, R.layout.item_friend_list)
         recyclerView.adapter = friendsAdapter
 
-        // 이제 adapter 초기화가 끝난 뒤에 검색 리스너 설정
         val etSearch = findViewById<EditText>(R.id.etSearch)
         etSearch.addTextChangedListener { query ->
             friendsAdapter.filter.filter(query.toString())
@@ -47,10 +45,12 @@ class FriendListActivity : AppCompatActivity() {
             startActivity(Intent(this, FindFriendActivity::class.java))
             findViewById<ImageButton>(R.id.btnBack).setOnClickListener { finish() }
         }
-
-        loadFriendList()
     }
 
+    override fun onResume() {
+        super.onResume()
+        loadFriendList()
+    }
 
     private fun loadFriendList() {
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
@@ -61,23 +61,54 @@ class FriendListActivity : AppCompatActivity() {
             .get()
             .addOnSuccessListener { docs ->
                 friendsList.clear()
-                docs.forEach { doc ->
-                    // Firestore 는 Map<String,Any> 반환 → String:String 으로 변환
-                    val friendMap = HashMap<String, String>()
-                    doc.data.forEach { (key, value) ->
-                        friendMap[key] = value.toString()
-                    }
-                    friendMap["id"] = doc.id
-                    friendsList.add(friendMap)
-                }
-                if (friendsList.isEmpty()) {
+                val db = FirebaseFirestore.getInstance()
+                val totalFriends = docs.size()
+                if (totalFriends == 0) {
                     emptyText.visibility = android.view.View.VISIBLE
                     recyclerView.visibility = android.view.View.GONE
-                } else {
-                    emptyText.visibility = android.view.View.GONE
-                    recyclerView.visibility = android.view.View.VISIBLE
-                    friendsAdapter.notifyDataSetChanged()
-                    friendsAdapter.filter.filter("")
+                    return@addOnSuccessListener
+                }
+                // 카운터: 모든 프로필 정보를 불러온 후 notifyDataSetChanged() 호출
+                var profilesFetched = 0
+                docs.forEach { doc ->
+                    // 우선 친구 ID만 저장한 임시 맵 생성
+                    val friendMap = HashMap<String, String>()
+                    friendMap["id"] = doc.id
+
+                    // user_profiles 컬렉션에서 추가 정보 조회
+                    db.collection("user_profiles")
+                        .document(doc.id)
+                        .get()
+                        .addOnSuccessListener { profileDoc ->
+                            // 닉네임과 프로필 URL 업데이트, 없으면 기본값 설정
+                            val nickname = profileDoc.getString("nickname") ?: "알 수 없음"
+                            val profileImageUrl = profileDoc.getString("profileImageUrl") ?: "default"
+                            friendMap["nickname"] = nickname
+                            friendMap["profileImageUrl"] = profileImageUrl
+
+                            friendsList.add(friendMap)
+                            profilesFetched++
+                            // 모든 친구의 프로필 정보를 불러왔으면 Adapter 업데이트
+                            if (profilesFetched == totalFriends) {
+                                emptyText.visibility = android.view.View.GONE
+                                recyclerView.visibility = android.view.View.VISIBLE
+                                friendsAdapter.notifyDataSetChanged()
+                                friendsAdapter.filter.filter("")
+                            }
+                        }
+                        .addOnFailureListener {
+                            // 만약 profile 정보를 불러오지 못하면 기본값 사용
+                            friendMap["nickname"] = "알 수 없음"
+                            friendMap["profileImageUrl"] = "default"
+                            friendsList.add(friendMap)
+                            profilesFetched++
+                            if (profilesFetched == totalFriends) {
+                                emptyText.visibility = android.view.View.GONE
+                                recyclerView.visibility = android.view.View.VISIBLE
+                                friendsAdapter.notifyDataSetChanged()
+                                friendsAdapter.filter.filter("")
+                            }
+                        }
                 }
             }
     }
