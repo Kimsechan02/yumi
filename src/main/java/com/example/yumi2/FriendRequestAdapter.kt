@@ -1,5 +1,6 @@
 package com.example.yumi2
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -40,23 +41,13 @@ class FriendRequestAdapter(
         holder.name.text = req["nickname"]
         val imageUrl = req["profileImageUrl"].orEmpty()
 
-        if (imageUrl == "default") {
-            // 🔥 Firebase Storage에서 `default_profile.jpg` 가져오기
-            val storageRef = FirebaseStorage.getInstance().reference.child("default_profile.jpg")
-            storageRef.downloadUrl
-                .addOnSuccessListener { uri ->
-                    Glide.with(holder.img.context)
-                        .load(uri.toString()) // ✅ Storage에서 가져온 URL 사용
-                        .circleCrop()
-                        .placeholder(R.drawable.error_image)
-                        .into(holder.img)
-                }
-                .addOnFailureListener {
-                    // 🔥 Storage에서 가져오기 실패하면 로컬 기본 이미지 사용
-                    holder.img.setImageResource(R.drawable.error_image)
-                }
+        if (imageUrl == "default" || imageUrl.startsWith("gs://")) {
+            Glide.with(holder.img.context)
+                .load(R.drawable.default_profile)  // 로컬 리소스 사용
+                .circleCrop()                      // 원형으로 변환
+                .placeholder(R.drawable.error_image)
+                .into(holder.img)
         } else {
-            // ✅ 기본 프로필 이미지가 아니라면 Glide로 로드
             Glide.with(holder.img.context)
                 .load(imageUrl)
                 .circleCrop()
@@ -68,4 +59,5 @@ class FriendRequestAdapter(
         holder.btnReject.setOnClickListener { listener.onReject(id) }
         holder.btnBlock.setOnClickListener { listener.onBlock(id) }
     }
+
 }

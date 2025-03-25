@@ -31,7 +31,7 @@
             android:textSize="20sp"
             android:gravity="center_vertical" />
 
-        <!-- 친구 요청 영역 (친구 찾기, 친구 요청 텍스트, 배지) -->
+        <!-- 친구 요청 영역 -->
         <LinearLayout
             android:id="@+id/llFriendRequests"
             android:layout_width="wrap_content"
@@ -60,16 +60,16 @@
 
             <!-- 요청 개수를 표시하는 원형 배지; 요청이 없으면 GONE -->
             <TextView
-                android:id="@+id/tvRequestBadge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:background="#B1C1CE"
+                android:id="@+id/tvBadge"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="top|end"
+                android:background="#80929F"
+                android:gravity="center"
                 android:text="0"
                 android:textColor="@android:color/white"
                 android:textSize="12sp"
-                android:padding="4dp"
-                android:visibility="gone" />
+                android:visibility="gone"/>
         </LinearLayout>
     </LinearLayout>
 

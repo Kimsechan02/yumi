@@ -2,6 +2,7 @@ package com.example.yumi2
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
@@ -50,7 +51,42 @@ class FriendListActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         loadFriendList()
+        loadFriendRequestsCount()
+
+        val etSearch = findViewById<EditText>(R.id.etSearch)
+        val query = etSearch.text.toString().trim()
+        if(query.isNotEmpty()){
+            friendsAdapter.filter.filter(query)
+        }
     }
+
+    private fun loadFriendRequestsCount() {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        FirebaseFirestore.getInstance()
+            .collection("users")
+            .document(uid)
+            .collection("friend_requests")
+            .get()
+            .addOnSuccessListener { docs ->
+                val count = docs.size()
+                updateBadge(count)
+            }
+            .addOnFailureListener { e ->
+                // 실패 시 기본값 0 또는 에러 처리
+                updateBadge(0)
+            }
+    }
+
+    private fun updateBadge(count: Int) {
+        val tvBadge = findViewById<TextView>(R.id.tvBadge)
+        if (count > 0) {
+            tvBadge.text = count.toString()
+            tvBadge.visibility = View.VISIBLE
+        } else {
+            tvBadge.visibility = View.GONE
+        }
+    }
+
 
     private fun loadFriendList() {
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
