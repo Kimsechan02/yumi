@@ -20,6 +20,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import android.util.Patterns
 
+
+//hello
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
